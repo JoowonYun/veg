@@ -1,17 +1,19 @@
-package main
+package parser
 
 import (
 	"log"
 	"strconv"
+
+	"github.com/joowonyun/veg/lexer"
 )
 
 type Parser struct {
-	lex          *Lexer
-	currentToken Token
-	nextToken    Token
+	lex          *lexer.Lexer
+	currentToken lexer.Token
+	nextToken    lexer.Token
 }
 
-func NewParser(lexer *Lexer) *Parser {
+func NewParser(lexer *lexer.Lexer) *Parser {
 	parser := Parser{lex: lexer}
 	parser.readToken()
 	parser.readToken()
@@ -23,29 +25,29 @@ func (p *Parser) readToken() {
 	p.nextToken = p.lex.NextToken()
 }
 
-func (p *Parser) ParseSvg() *svg {
-	s := svg{}
-	s.drawables = []drawable{}
+func (p *Parser) ParseSvg() *Svg {
+	s := Svg{}
+	s.Drawables = []drawable{}
 
-	p.expect(TokenOpen)
+	p.expect(lexer.TokenOpen)
 	if tagName := p.parseIdentifier(); tagName != "svg" {
 		log.Fatalf("expected tag 'svg', got '%s'\n", tagName)
 	}
 
 	attributes := p.parseAttributes()
-	s.width = lookupInt(attributes, "width")
-	s.height = lookupInt(attributes, "height")
+	s.Width = lookupInt(attributes, "width")
+	s.Height = lookupInt(attributes, "height")
 
-	p.expect(TokenClose)
+	p.expect(lexer.TokenClose)
 
 	// Stop parsing shapes when finding "</"
-	for p.currentToken.Type != TokenOpen || p.nextToken.Type != TokenSlash {
+	for p.currentToken.Type != lexer.TokenOpen || p.nextToken.Type != lexer.TokenSlash {
 		d := p.parseShape()
-		s.drawables = append(s.drawables, d)
+		s.Drawables = append(s.Drawables, d)
 	}
 
 	// Consume and ignore remaining tokens
-	for p.currentToken.Type != EOF {
+	for p.currentToken.Type != lexer.EOF {
 		p.readToken()
 	}
 
@@ -54,7 +56,7 @@ func (p *Parser) ParseSvg() *svg {
 
 func (p *Parser) parseAttributes() map[string]string {
 	attributes := make(map[string]string)
-	for p.currentToken.Type != TokenSlash && p.currentToken.Type != TokenClose {
+	for p.currentToken.Type != lexer.TokenSlash && p.currentToken.Type != lexer.TokenClose {
 		k, v := p.parseAttribute()
 		attributes[k] = v
 	}
@@ -63,14 +65,14 @@ func (p *Parser) parseAttributes() map[string]string {
 
 func (p *Parser) parseAttribute() (key, value string) {
 	key = p.parseIdentifier()
-	p.expect(TokenEqual)
-	p.expect(TokenQuote)
+	p.expect(lexer.TokenEqual)
+	p.expect(lexer.TokenQuote)
 	value = p.parseIdentifier()
-	p.expect(TokenQuote)
+	p.expect(lexer.TokenQuote)
 	return
 }
 
-func (p *Parser) expect(tokenType TokenType) {
+func (p *Parser) expect(tokenType lexer.TokenType) {
 	if p.currentToken.Type != tokenType {
 		log.Fatalf("expect %q, got %q (%q)", tokenType, p.currentToken.Type, p.currentToken.Literal)
 	}
@@ -78,7 +80,7 @@ func (p *Parser) expect(tokenType TokenType) {
 }
 
 func (p *Parser) parseIdentifier() string {
-	if p.currentToken.Type != TokenIdentifier {
+	if p.currentToken.Type != lexer.TokenIdentifier {
 		log.Printf("expect identifier, got %q (%q)", p.currentToken.Type, p.currentToken.Literal)
 	}
 	id := p.currentToken.Literal
@@ -87,7 +89,7 @@ func (p *Parser) parseIdentifier() string {
 }
 
 func (p *Parser) parseShape() drawable {
-	p.expect(TokenOpen)
+	p.expect(lexer.TokenOpen)
 	shapeName := p.parseIdentifier()
 	attributes := p.parseAttributes()
 
@@ -99,8 +101,8 @@ func (p *Parser) parseShape() drawable {
 		log.Printf("unknown shape %s\n", shapeName)
 	}
 
-	p.expect(TokenSlash)
-	p.expect(TokenClose)
+	p.expect(lexer.TokenSlash)
+	p.expect(lexer.TokenClose)
 
 	return d
 }

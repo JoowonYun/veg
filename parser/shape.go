@@ -1,16 +1,16 @@
-package main
+package parser
 
 import (
 	"github.com/fogleman/gg"
 )
 
-type svg struct {
-	drawables     []drawable
-	width, height int
+type Svg struct {
+	Drawables     []drawable
+	Width, Height int
 }
 
 type drawable interface {
-	draw(dc *gg.Context)
+	Draw(dc *gg.Context)
 }
 
 type shape struct {
@@ -25,7 +25,7 @@ type circle struct {
 	radius float64
 }
 
-func (c *circle) draw(dc *gg.Context) {
+func (c *circle) Draw(dc *gg.Context) {
 	x := c.x
 	y := c.y
 	r := c.radius

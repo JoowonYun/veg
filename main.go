@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/fogleman/gg"
+	"github.com/joowonyun/veg/lexer"
+	"github.com/joowonyun/veg/parser"
 )
 
 func main() {
@@ -21,17 +23,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lexer := NewLexer(string(input))
-	parser := NewParser(lexer)
+	lexer := lexer.NewLexer(string(input))
+	parser := parser.NewParser(lexer)
 	svg := parser.ParseSvg()
 
-	dc := gg.NewContext(svg.width, svg.height)
+	dc := gg.NewContext(svg.Width, svg.Height)
 	// dc.SetColor(color.White)
 	// dc.Clear()
 
-	for _, s := range svg.drawables {
-		s.draw(dc)
+	for _, s := range svg.Drawables {
+		s.Draw(dc)
 	}
 
-	dc.SavePNG("out.png")
+	dc.SavePNG("out1.png")
 }

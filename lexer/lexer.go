@@ -1,4 +1,4 @@
-package main
+package lexer
 
 type Lexer struct {
 	input           string
